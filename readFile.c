@@ -57,9 +57,9 @@ int parseLine(char* line, int** arrPtr, int* countPtr)
             return failParse(&arr, &arrPtr, &countPtr);
         }
         // Check if possible to cast to int
-        if (val > INT_MAX || val < INT_MIN)
+        if (val > INT_MAX || val < 0)
         {
-            fprintf(stderr, "Error: Integer value '%s' out of range for int casting.\n", token);
+            fprintf(stderr, "Error: Integer '%s' is out of range\n", token);
             return failParse(&arr, &arrPtr, &countPtr);
         }
 
@@ -171,7 +171,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
     }
 
     int maxDim = (int)maxDimVal;
-    printf("Info: Max dimensions from Line 1 = %d\n", maxDim);
+    printf("Info: Max dimensions from Line 1 = %dx%d\n", maxDim, maxDim);
 
     // Read line 2
     int colCount = 0;
@@ -192,6 +192,16 @@ Graph* loadGraph(const char *filename, int graphIndex)
         fprintf(stderr, "Error: No nodes found\n");
         return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
     }
+
+    for (int i = 0; i < colCount; ++i)
+    {
+        if (colIndices[i] < 0 || colIndices[i] >= maxDim)
+        {
+            fprintf(stderr, "Error: Node %d has column index outside the allowed range in Line 1\n", i);
+            return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        }
+    }
+    printf("Info: Node column indices validation passed.\n");
 
     int numVert = colCount;
     printf("Info: Determined numVert = %d\n", numVert);
@@ -217,6 +227,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         fprintf(stderr, "Error: Failed to validate Line 3\n");
         return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
     }
+
     printf("Info: Line 3 validated\n");
 
     // Read line 4
@@ -255,41 +266,38 @@ Graph* loadGraph(const char *filename, int graphIndex)
 
         if (foundGraphIndex == graphIndex)
         {
-            printf("Info: Found target graph definition line %d.\n", currentGraphLine);
+            printf("Info: Found target graph %d.\n", currentGraphLine); //todo
 
             if (parseLine(lineBuffer, &edgeGroupPointers, &edgeGroupCount) != 0)
             {
-                fprintf(stderr, "Failed to parse target graph definition (Line %d).\n", currentGraphLine);
+                fprintf(stderr, "Error: Failed to parse the graph on Line %d\n", currentGraphLine);
                 return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
             }
-            printf("Info: Read %d edge group pointers from target line %d.\n", edgeGroupCount, currentGraphLine);
-
             if (edgeGroupCount <= 0)
             {
-                fprintf(stderr, "Error: No edge group pointers found on target line %d.\n", currentGraphLine);
+                fprintf(stderr, "Error: No pointers found on line %d\n", currentGraphLine);
                 return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
             }
             if (edgeGroupPointers[0] != 0)
             {
-                fprintf(stderr, "Error: First edge group pointer on target line %d is %d, expected 0.\n", currentGraphLine, edgeGroupPointers[0]);
+                fprintf(stderr, "Error: First edge group pointer on target line %d is not 0.\n", currentGraphLine);
                 return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
             }
-            // CORRECTED validation: last pointer must be valid start index
             if (edgeGroupPointers[edgeGroupCount - 1] >= edgeListCount || edgeGroupPointers[edgeGroupCount - 1] < 0)
             {
-                fprintf(stderr, "Error: Last edge group pointer value () on target line ' ' is not a valid starting index for the edge list (size ).\n");
+                fprintf(stderr, "Error: Last pointer value line %d is not a valid starting index\n", currentGraphLine);
                 return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
             }
-            // Optional: Check for monotonicity
+
             for (int i = 0; i < edgeGroupCount - 1; ++i)
             {
                 if (edgeGroupPointers[i] > edgeGroupPointers[i+1])
                 {
-                    fprintf(stderr, "Error: Edge group pointers on target line %d are not monotonically non-decreasing at index %d.\n", currentGraphLine, i);
+                    fprintf(stderr, "Error: Pointers on line %d are decreased at index %d.\n", currentGraphLine, i);
                     return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
                 }
-             }
-            printf("Info: Target Edge Group Pointers validated.\n");
+            }
+            printf("Info: Group pointers validated.\n");
 
             break;
         }
@@ -315,7 +323,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
     graph = allocateGraph(numVert);
     if (!graph)
     {
-        //Error messegaes are in the function
+        // Error messegaes are in the function
         return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
     }
 
@@ -328,7 +336,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         if (i == (edgeGroupCount - 1)) groupEndIndex = edgeListCount;
         else groupEndIndex = edgeGroupPointers[i + 1];
 
-        // Check if the group has at least 2 nodes
+        // Check if the group has 2 nodes
         if (groupStartIndex >= groupEndIndex - 1)
         {
             printf("Info: Skipping group %d (%d, %d) as it has less than 2 nodes for star connection.\n", i, groupStartIndex, groupEndIndex);
@@ -349,7 +357,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
             int restNode = edgeListIndices[k];
             if (restNode < 0 || restNode >= graph->numVert)
             {
-                printf(stderr, "Error: Invalid rest node index %d found in group %d\n", mainNode, i);
+                fprintf(stderr, "Error: Invalid rest node index %d found in group %d\n", mainNode, i);
                 return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
             }
 
