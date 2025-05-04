@@ -1,3 +1,6 @@
+#ifndef READFILE_H
+#define READFILE_H
+
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -21,3 +24,5 @@ void printGraph(const Graph *graph);
 int parseLine(char* line, int** arrPtr, int* countPtr);
 int failParse(int** arr, int*** arrPtr, int** countPtr);
 Graph* failGraph(FILE *file, char* lineBuffer, Graph* graph, int* colIndices, int* rowPointers, int* edgeListIndices, int* edgeGroupPointers);
+
+#endif
