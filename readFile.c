@@ -72,7 +72,7 @@ int parseLine(char* line, int** arrPtr, int* countPtr)
     return 0;
 }
 
-Graph* allocateGraph(int numVertices) // Reserves memory for the graph
+Graph* allocateGraph(int numVertices, int maxDimension) // Reserves memory for the graph
 {
     if (numVertices <= 0)
     {
@@ -88,10 +88,11 @@ Graph* allocateGraph(int numVertices) // Reserves memory for the graph
         return NULL;
     }
 
+    graph->maxDim = maxDimension;
     graph->numVert = numVertices;
-    graph->list = (Node**)calloc(numVertices, sizeof(Node*));
+    graph->vertexData = (VertexInfo*)calloc(numVertices, sizeof(VertexInfo));
 
-    if (!graph->list)
+    if (!graph->vertexData)
     {
         fprintf(stderr, "Error: Failed to allocate memory for adjacency list array\n");
         free(graph);
@@ -121,8 +122,8 @@ void addEdge(Graph* graph, int src, int dest)
     }
 
     newNode->vertex = dest;
-    newNode->next = graph->list[src];
-    graph->list[src] = newNode;
+    newNode->next = graph->vertexData[src].neighborsHead;
+    graph->vertexData[src].neighborsHead = newNode;
 }
 
 
@@ -320,12 +321,28 @@ Graph* loadGraph(const char *filename, int graphIndex)
     }
 
     // Create graph
-    graph = allocateGraph(numVert);
+    graph = allocateGraph(numVert, maxDim); //todo
     if (!graph)
     {
         // Error messegaes are in the function
         return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
     }
+
+    printf("Info: Populating vertex row/column information\n");
+    int currentRow = 0;
+    for (int i = 0; i < rowPtrCount - 1; ++i)
+    {
+        int rowStartIndex = rowPointers[i];
+        int rowEndIndex = rowPointers[i+1];
+        currentRow = i;
+        for (int k = rowStartIndex; k < rowEndIndex; ++k)
+        {
+            graph->vertexData[k].vertexId = k;
+            graph->vertexData[k].row = currentRow;
+            graph->vertexData[k].col = colIndices[k];
+        }
+    }
+    printf("Info: Row/column information populated\n");
 
     printf("Info: Building adjacency list\n");
 
@@ -404,11 +421,11 @@ Graph* failGraph(FILE *file, char* lineBuffer, Graph* graph, int* colIndices, in
 void freeGraph(Graph *graph)
 {
     if (!graph) return;
-    if (graph->list)
+    if (graph->vertexData)
     {
         for (int i = 0; i < graph->numVert; ++i)
         {
-            Node* current = graph->list[i];
+            Node* current = graph->vertexData[i].neighborsHead;
             while (current != NULL)
             {
                 Node* temp = current;
@@ -416,7 +433,7 @@ void freeGraph(Graph *graph)
                 free(temp);
             }
         }
-        free(graph->list);
+        free(graph->vertexData);
     }
     free(graph);
 }
@@ -435,8 +452,9 @@ void printGraph(const Graph *graph)
 
     for (int i = 0; i < graph->numVert; ++i)
     {
-        printf("Vertex %3d: ", i);
-        Node* current = graph->list[i];
+        printf("Vertex %3d (R=%d, C=%d): ", i, graph->vertexData[i].row, graph->vertexData[i].col);
+
+        Node* current = graph->vertexData[i].neighborsHead;
         if (!current)
         {
             printf("-> NULL");
