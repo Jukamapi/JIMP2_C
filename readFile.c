@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
 #include "readFile.h"
 
 int failParse(int** arr, int*** arrPtr, int** countPtr)
@@ -48,7 +51,7 @@ int parseLine(char* line, int** arrPtr, int* countPtr)
             arr = temp;
         }
 
-        char *endPtr;
+        char* endPtr;
         long val = strtol(token, &endPtr, 10);
 
         if (endPtr == token || (*endPtr != '\0' && *endPtr != '\n' && *endPtr != '\r'))
@@ -127,7 +130,7 @@ void addEdge(Graph* graph, int src, int dest)
 }
 
 
-Graph* loadGraph(const char *filename, int graphIndex)
+Graph* loadGraph(const char* filename, int graphIndex)
 {
     if (graphIndex <= 0)
     {
@@ -135,7 +138,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         return NULL;
     }
 
-    FILE *file = fopen(filename, "r");
+    FILE* file = fopen(filename, "r");
     if (!file)
     {
         fprintf(stderr, "Error: Failed to open file '%s'\n", filename);
@@ -152,7 +155,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
     printf("Info: Starting to load graph from file '%s' with index %d\n", filename, graphIndex);
 
     // Read line 1
-    char *lineBuffer = NULL;
+    char* lineBuffer = NULL;
     long lineBufferSize = 0;
 
     long lineSize = getline(&lineBuffer, &lineBufferSize, file);
@@ -400,7 +403,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
 }
 
 // Handle errors
-Graph* failGraph(FILE *file, char* lineBuffer, Graph* graph, int* colIndices, int* rowPointers, int* edgeListIndices, int* edgeGroupPointers)
+Graph* failGraph(FILE* file, char* lineBuffer, Graph* graph, int* colIndices, int* rowPointers, int* edgeListIndices, int* edgeGroupPointers)
 {
     fprintf(stderr, "Cleanup triggered due to error during graph loading.\n");
 
@@ -418,7 +421,7 @@ Graph* failGraph(FILE *file, char* lineBuffer, Graph* graph, int* colIndices, in
 }
 
 // Free the graph memory
-void freeGraph(Graph *graph)
+void freeGraph(Graph* graph)
 {
     if (!graph) return;
     if (graph->vertexData)
@@ -439,7 +442,7 @@ void freeGraph(Graph *graph)
 }
 
 // Print the graph
-void printGraph(const Graph *graph)
+void printGraph(const Graph* graph)
 {
     if (!graph)
     {
