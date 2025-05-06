@@ -1,6 +1,9 @@
 #include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
 
 #include "readFile.h"
+#include "writeFile.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,7 +17,7 @@ int main(int argc, char *argv[])
 
     const char *filename = argv[1];
     long val;
-    int target_index;
+    int targetIndex;
 
     char *endptr;
     val = strtol(argv[2], &endptr, 10);
@@ -30,25 +33,41 @@ int main(int argc, char *argv[])
          fprintf(stderr, "Error: Graph index %ld is out of range\n", val);
          return 1;
     }
-    target_index = (int)val;
+    targetIndex = (int)val;
 
 
-    printf("Info: Attempting to load graph %d from: %s\n", target_index, filename);
-    Graph *myGraph = loadGraph(filename, target_index);
+    printf("Info: Attempting to load graph %d from: %s\n", targetIndex, filename);
+    Graph *myGraph = loadGraph(filename, targetIndex);
 
     if (myGraph)
     {
-        printf("Info: Successfully loaded graph %d from %s\n", target_index, filename);
+        printf("Info: Successfully loaded graph %d from %s\n", targetIndex, filename);
         printGraph(myGraph);
 
-        // Place for calling algorithms
+        // Algorithms should probably go here
+
+        // Writing to a file
+        char saveFilename[256];
+        snprintf(saveFilename, sizeof(saveFilename), "savedGraphs/savedGraph%d.csrrg", targetIndex);
+
+        printf("\nInfo: Attempting to save graph %d to: %s...\n", targetIndex, saveFilename);
+        int saveStatus = saveGraph(myGraph, saveFilename);
+
+        if (saveStatus == 0)
+        {
+            printf("Info: Graph saved successfully to %s.\n", saveFilename);
+        }
+        else
+        {
+            fprintf(stderr, "Error: Failed to save graph to %s.\n", saveFilename);
+        }
 
         freeGraph(myGraph);
         printf("Info: Graph memory freed.\n");
     }
     else
     {
-        fprintf(stderr, "Error: Failed to load graph %d from %s\n", target_index, filename);
+        fprintf(stderr, "Error: Failed to load graph %d from %s\n", targetIndex, filename);
         return 1;
     }
 

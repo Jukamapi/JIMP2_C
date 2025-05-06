@@ -1,5 +1,13 @@
 #include <stdio.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <string.h>
 #include "readFile.h"
+
+// I'm making a macro because calling failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers) is too long.
+// I miss "using" from c++ :(
+
+#define HANDLE_FAIL() failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers)
 
 int failParse(int** arr, int*** arrPtr, int** countPtr)
 {
@@ -21,8 +29,8 @@ int parseLine(char* line, int** arrPtr, int* countPtr)
         return failParse(NULL, &arrPtr, &countPtr);
     }
 
-    char* line_copy = line;
-    char* token = strtok(line_copy, ";\n\r");
+    char* lineCopy = line;
+    char* token = strtok(lineCopy, ";\n\r");
 
     while (token != NULL)
     {
@@ -48,7 +56,7 @@ int parseLine(char* line, int** arrPtr, int* countPtr)
             arr = temp;
         }
 
-        char *endPtr;
+        char* endPtr;
         long val = strtol(token, &endPtr, 10);
 
         if (endPtr == token || (*endPtr != '\0' && *endPtr != '\n' && *endPtr != '\r'))
@@ -107,12 +115,12 @@ void addEdge(Graph* graph, int src, int dest)
     if (!graph || src < 0 || src >= graph->numVert)
     {
         fprintf(stderr, "Error: Invalid source vertex %d\n", src);
-        return; // Don't add the edge
+        return;
     }
     if (dest < 0 || dest >= graph->numVert)
     {
         fprintf(stderr, "Error: Invalid destination vertex %d\n", dest);
-        return; // Don't add the edge
+        return;
     }
 
     Node* newNode = (Node*)malloc(sizeof(Node));
@@ -127,7 +135,7 @@ void addEdge(Graph* graph, int src, int dest)
 }
 
 
-Graph* loadGraph(const char *filename, int graphIndex)
+Graph* loadGraph(const char* filename, int graphIndex)
 {
     if (graphIndex <= 0)
     {
@@ -135,7 +143,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         return NULL;
     }
 
-    FILE *file = fopen(filename, "r");
+    FILE* file = fopen(filename, "r");
     if (!file)
     {
         fprintf(stderr, "Error: Failed to open file '%s'\n", filename);
@@ -152,14 +160,14 @@ Graph* loadGraph(const char *filename, int graphIndex)
     printf("Info: Starting to load graph from file '%s' with index %d\n", filename, graphIndex);
 
     // Read line 1
-    char *lineBuffer = NULL;
+    char* lineBuffer = NULL;
     long lineBufferSize = 0;
 
     long lineSize = getline(&lineBuffer, &lineBufferSize, file);
     if (lineSize <= 0)
     {
         fprintf(stderr, "Error: Failed to read Line 1.\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
 
     char *endptr;
@@ -168,7 +176,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
     if (endptr == lineBuffer || (*endptr != '\n' && *endptr != '\r' && *endptr != '\0') || maxDimVal <= 0 || maxDimVal > 1024)
     {
         fprintf(stderr, "Error: Invalid max dimension '%s'\n", lineBuffer);
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
 
     int maxDim = (int)maxDimVal;
@@ -181,17 +189,17 @@ Graph* loadGraph(const char *filename, int graphIndex)
     if (lineSize <= 0)
     {
         fprintf(stderr, "Error: Failed to read Line 2\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
     if (parseLine(lineBuffer, &colIndices, &colCount) != 0)
     {
         fprintf(stderr, "Error: Failed to parse Line 2\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
     if (colCount <= 0)
     {
         fprintf(stderr, "Error: No nodes found\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
 
     for (int i = 0; i < colCount; ++i)
@@ -199,7 +207,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         if (colIndices[i] < 0 || colIndices[i] >= maxDim)
         {
             fprintf(stderr, "Error: Node %d has column index outside the allowed range in Line 1\n", i);
-            return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+            return HANDLE_FAIL();
         }
     }
     printf("Info: Node column indices validation passed.\n");
@@ -214,19 +222,19 @@ Graph* loadGraph(const char *filename, int graphIndex)
     if (lineSize <= 0)
     {
         fprintf(stderr, "Error: Failed to read Line 3\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
     if (parseLine(lineBuffer, &rowPointers, &rowPtrCount) != 0)
     {
         fprintf(stderr, "Error: Failed to parse Line 3\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
     printf("Info: Read %d row pointers from Line 3\n", rowPtrCount);
 
     if (rowPtrCount <= 0 || rowPointers[0] != 0 || rowPointers[rowPtrCount - 1] != numVert)
     {
         fprintf(stderr, "Error: Failed to validate Line 3\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
 
     printf("Info: Line 3 validated\n");
@@ -238,12 +246,12 @@ Graph* loadGraph(const char *filename, int graphIndex)
     if (lineSize <= 0)
     {
         fprintf(stderr, "Error: Failed to read Line 4\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
     if (parseLine(lineBuffer, &edgeListIndices, &edgeListCount) != 0)
     {
         fprintf(stderr, "Error: Failed to parse Line 4\n");
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
     printf("Info: Read %d edge list indices from Line 4\n", edgeListCount);
 
@@ -252,7 +260,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         if (edgeListIndices[i] < 0 || edgeListIndices[i] >= numVert)
         {
             fprintf(stderr, "Error: Failed to validate Line 4\n");
-            return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+            return HANDLE_FAIL();
         }
     }
 
@@ -272,22 +280,22 @@ Graph* loadGraph(const char *filename, int graphIndex)
             if (parseLine(lineBuffer, &edgeGroupPointers, &edgeGroupCount) != 0)
             {
                 fprintf(stderr, "Error: Failed to parse the graph on Line %d\n", currentGraphLine);
-                return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+                return HANDLE_FAIL();
             }
             if (edgeGroupCount <= 0)
             {
                 fprintf(stderr, "Error: No pointers found on line %d\n", currentGraphLine);
-                return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+                return HANDLE_FAIL();
             }
             if (edgeGroupPointers[0] != 0)
             {
                 fprintf(stderr, "Error: First edge group pointer on target line %d is not 0.\n", currentGraphLine);
-                return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+                return HANDLE_FAIL();
             }
             if (edgeGroupPointers[edgeGroupCount - 1] >= edgeListCount || edgeGroupPointers[edgeGroupCount - 1] < 0)
             {
                 fprintf(stderr, "Error: Last pointer value line %d is not a valid starting index\n", currentGraphLine);
-                return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+                return HANDLE_FAIL();
             }
 
             for (int i = 0; i < edgeGroupCount - 1; ++i)
@@ -295,7 +303,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
                 if (edgeGroupPointers[i] > edgeGroupPointers[i+1])
                 {
                     fprintf(stderr, "Error: Pointers on line %d are decreased at index %d.\n", currentGraphLine, i);
-                    return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+                    return HANDLE_FAIL();
                 }
             }
             printf("Info: Group pointers validated.\n");
@@ -317,7 +325,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         {
             fprintf(stderr, "Error reading file while searching for graph\n");
         }
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
 
     // Create graph
@@ -325,7 +333,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
     if (!graph)
     {
         // Error messegaes are in the function
-        return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+        return HANDLE_FAIL();
     }
 
     printf("Info: Populating vertex row/column information\n");
@@ -365,7 +373,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
         if (mainNode < 0 || mainNode >= graph->numVert)
         {
             fprintf(stderr, "Error: Invalid main node index %d found in group %d\n", mainNode, i);
-            return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+            return HANDLE_FAIL();
         }
 
         // Connect main node to every other node in the group
@@ -375,7 +383,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
             if (restNode < 0 || restNode >= graph->numVert)
             {
                 fprintf(stderr, "Error: Invalid rest node index %d found in group %d\n", mainNode, i);
-                return failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers);
+                return HANDLE_FAIL();
             }
 
             // Add edges between nodes
@@ -400,7 +408,7 @@ Graph* loadGraph(const char *filename, int graphIndex)
 }
 
 // Handle errors
-Graph* failGraph(FILE *file, char* lineBuffer, Graph* graph, int* colIndices, int* rowPointers, int* edgeListIndices, int* edgeGroupPointers)
+Graph* failGraph(FILE* file, char* lineBuffer, Graph* graph, int* colIndices, int* rowPointers, int* edgeListIndices, int* edgeGroupPointers)
 {
     fprintf(stderr, "Cleanup triggered due to error during graph loading.\n");
 
@@ -418,7 +426,7 @@ Graph* failGraph(FILE *file, char* lineBuffer, Graph* graph, int* colIndices, in
 }
 
 // Free the graph memory
-void freeGraph(Graph *graph)
+void freeGraph(Graph* graph)
 {
     if (!graph) return;
     if (graph->vertexData)
@@ -439,7 +447,7 @@ void freeGraph(Graph *graph)
 }
 
 // Print the graph
-void printGraph(const Graph *graph)
+void printGraph(const Graph* graph)
 {
     if (!graph)
     {
@@ -452,7 +460,7 @@ void printGraph(const Graph *graph)
 
     for (int i = 0; i < graph->numVert; ++i)
     {
-        printf("Vertex %3d (R=%d, C=%d): ", i, graph->vertexData[i].row, graph->vertexData[i].col);
+        printf("Node %3d (R=%d, C=%d): ", i, graph->vertexData[i].row, graph->vertexData[i].col);
 
         Node* current = graph->vertexData[i].neighborsHead;
         if (!current)
