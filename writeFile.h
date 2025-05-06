@@ -3,7 +3,7 @@
 
 typedef struct Graph Graph;
 
-int cleanupError(FILE *file, int* rowPointers, int* connNodes, int* groupPtrs);
+int cleanupError(FILE *file, int* rowPointers, int* groupedNodeIndices, int* groupPointers);
 int saveGraph(const Graph* graph, const char* filename);
 
 

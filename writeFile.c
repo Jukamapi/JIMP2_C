@@ -27,19 +27,19 @@ int saveGraph(const Graph* graph, const char* filename)
 
     printf("Info: Starting writing graph to '%s'\n", filename);
     int errorFlag = 0;
-    int* rowPointersOut = NULL;
-    int* connectionNodes = NULL;
-    int* edgeGroupPointersOut = NULL;
+    int* rowPointers = NULL;
+    int* groupedNodeIndices = NULL;
+    int* groupPointers = NULL;
 
     // Write line 1
     if (fprintf(file, "%d\n", graph->maxDim) < 0)
     {
         fprintf(stderr, "Error: Failed to write Line 1\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut); // Changed label
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers); // Changed label
     }
     printf("Info: Line 1 written\n");
 
-    // Write line 2 and 3
+    // Create line 2 and 3
     printf("Info: Writing lines 2 and 3\n");
     int maxRowInUse = -1;
     for (int i = 0; i < graph->numVert; ++i)
@@ -51,11 +51,11 @@ int saveGraph(const Graph* graph, const char* filename)
     }
 
     int numRows = maxRowInUse + 1;
-    rowPointersOut = calloc(numRows + 1, sizeof(int));
-    if (!rowPointersOut)
+    rowPointers = calloc(numRows + 1, sizeof(int));
+    if (!rowPointers)
     {
         fprintf(stderr, "Error: Failed to allocate memory for output row pointers\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
 
     // Write line 2
@@ -85,7 +85,7 @@ int saveGraph(const Graph* graph, const char* filename)
         }
         if(errorFlag != 0) break;
         nodesWrittenCount += nodesInThisRow;
-        rowPointersOut[r + 1] = nodesWrittenCount;
+        rowPointers[r + 1] = nodesWrittenCount;
     }
 
     // Write newline if no error
@@ -100,14 +100,14 @@ int saveGraph(const Graph* graph, const char* filename)
     if(errorFlag !=0)
     {
         fprintf(stderr, "Error: Failed to write Line 2\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
     printf("Info: Line 2 written %d\n", nodesWrittenCount);
 
     if (nodesWrittenCount != graph->numVert)
     {
         fprintf(stderr, "Error: Mismatch writing Line 2, wrote: %d nodes, should be: %d\n", nodesWrittenCount, graph->numVert);
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
      }
 
     // Write line 3
@@ -121,7 +121,7 @@ int saveGraph(const Graph* graph, const char* filename)
                 break;
             }
         }
-        if (fprintf(file, "%d", rowPointersOut[i]) < 0)
+        if (fprintf(file, "%d", rowPointers[i]) < 0)
         {
             errorFlag = -1;
             break;
@@ -137,39 +137,39 @@ int saveGraph(const Graph* graph, const char* filename)
     if(errorFlag != 0)
     {
         fprintf(stderr, "Error: Failed while writing Line 3\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
     printf("Info: Line 3 written %d\n", numRows + 1);
 
 
     // Line 4 and 5
     printf("Info: Creating line 4 and 5\n");
-    int connNodesCapacity = graph->numVert > 0 ? graph->numVert * 2 : 10; //todo clearer names
-    connectionNodes = malloc(connNodesCapacity * sizeof(int));
+    int groupedNodeIndicesCapacity = graph->numVert > 0 ? graph->numVert * 2 : 10; //todo clearer names
+    groupedNodeIndices = malloc(groupedNodeIndicesCapacity * sizeof(int));
 
-    int groupPtrsCapacity = graph->numVert > 0 ? graph->numVert + 1 : 10;
-    edgeGroupPointersOut = malloc(groupPtrsCapacity * sizeof(int));
+    int groupPointersCapacity = graph->numVert > 0 ? graph->numVert + 1 : 10;
+    groupPointers = malloc(groupPointersCapacity * sizeof(int));
 
-    if (!connectionNodes || !edgeGroupPointersOut)
+    if (!groupedNodeIndices || !groupPointers)
     {
         fprintf(stderr, "Error: Failed to allocate memory for line 4 and 5\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
 
-    int connNodeIdx = 0;
-    int groupPtrIdx = 0;
+    int groupedNodeIndicesCount = 0;
+    int groupPointersCount = 0;
 
-    edgeGroupPointersOut[groupPtrIdx++] = 0;
+    groupPointers[groupPointersCount++] = 0;
 
-    for (int hubId = 0; hubId < graph->numVert; ++hubId)
+    for (int mainId = 0; mainId < graph->numVert; ++mainId)
     {
-        Node* neighbor = graph->vertexData[hubId].neighborsHead;
+        Node* neighbor = graph->vertexData[mainId].neighborsHead;
 
         int createsGroup = 0;
         while(neighbor != NULL)
          {
             // Write a group only if neighbour Id is higher to avoid double edges, np. 1->3 and 3->1
-            if (neighbor->vertex > hubId)
+            if (neighbor->vertex > mainId)
             {
                 createsGroup = 1;
                 break;
@@ -180,68 +180,68 @@ int saveGraph(const Graph* graph, const char* filename)
         if (createsGroup)
         {
             // Add main node
-            if (connNodeIdx >= connNodesCapacity)
+            if (groupedNodeIndicesCount >= groupedNodeIndicesCapacity)
             {
-                int newCapacity = connNodesCapacity * 2;
-                if (newCapacity <= connNodesCapacity) newCapacity = connNodesCapacity + 1024;
+                int newCapacity = groupedNodeIndicesCapacity * 2;
+                if (newCapacity <= groupedNodeIndicesCapacity) newCapacity = groupedNodeIndicesCapacity + 1024;
 
-                int* temp = realloc(connectionNodes, newCapacity * sizeof(int));
+                int* temp = realloc(groupedNodeIndices, newCapacity * sizeof(int));
                 if (!temp)
                 {
-                    fprintf(stderr, "Error: Failed to realloc connectionNodes array\n");
-                    return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+                    fprintf(stderr, "Error: Failed to realloc groupedNodeIndices array\n");
+                    return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
                 }
-                connectionNodes = temp;
-                connNodesCapacity = newCapacity;
+                groupedNodeIndices = temp;
+                groupedNodeIndicesCapacity = newCapacity;
             }
-            connectionNodes[connNodeIdx++] = hubId;
+            groupedNodeIndices[groupedNodeIndicesCount++] = mainId;
 
-            // Add rest nodes with Id > main
-            neighbor = graph->vertexData[hubId].neighborsHead;
+            // Add rest of nodes with Id > main
+            neighbor = graph->vertexData[mainId].neighborsHead;
             while(neighbor != NULL)
             {
-                if (neighbor->vertex > hubId)
+                if (neighbor->vertex > mainId)
                 {
-                    if (connNodeIdx >= connNodesCapacity)
+                    if (groupedNodeIndicesCount >= groupedNodeIndicesCapacity)
                     {
-                        int newCapacity = connNodesCapacity * 2;
-                        if (newCapacity <= connNodesCapacity) newCapacity = connNodesCapacity + 1024;
+                        int newCapacity = groupedNodeIndicesCapacity * 2;
+                        if (newCapacity <= groupedNodeIndicesCapacity) newCapacity = groupedNodeIndicesCapacity + 1024;
 
-                        int* temp = realloc(connectionNodes, newCapacity * sizeof(int));
+                        int* temp = realloc(groupedNodeIndices, newCapacity * sizeof(int));
                         if (!temp)
                         {
-                            fprintf(stderr,"Error: Failed to realloc connectionNodes array\n");
-                            return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+                            fprintf(stderr,"Error: Failed to realloc groupedNodeIndices array\n");
+                            return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
                         }
 
-                        connectionNodes = temp;
-                        connNodesCapacity = newCapacity;
+                        groupedNodeIndices = temp;
+                        groupedNodeIndicesCapacity = newCapacity;
                     }
-                    connectionNodes[connNodeIdx++] = neighbor->vertex;
+                    groupedNodeIndices[groupedNodeIndicesCount++] = neighbor->vertex;
                 }
                 neighbor = neighbor->next;
             }
 
-            if (groupPtrIdx >= groupPtrsCapacity)
+            if (groupPointersCount >= groupPointersCapacity)
             {
-                int newCapacity = groupPtrsCapacity * 2;
-                if (newCapacity <= groupPtrsCapacity) newCapacity = groupPtrsCapacity + 1024;
+                int newCapacity = groupPointersCapacity * 2;
+                if (newCapacity <= groupPointersCapacity) newCapacity = groupPointersCapacity + 1024;
 
-                int* temp = realloc(edgeGroupPointersOut, newCapacity * sizeof(int));
+                int* temp = realloc(groupPointers, newCapacity * sizeof(int));
                 if (!temp)
                 {
-                    fprintf(stderr, "Error: Failed to realloc edgeGroupPointersOut array\n");
-                    return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+                    fprintf(stderr, "Error: Failed to realloc groupPointers array\n");
+                    return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
                 }
-                edgeGroupPointersOut = temp;
-                groupPtrsCapacity = newCapacity;
+                groupPointers = temp;
+                groupPointersCapacity = newCapacity;
             }
-            edgeGroupPointersOut[groupPtrIdx++] = connNodeIdx;
+            groupPointers[groupPointersCount++] = groupedNodeIndicesCount;
         }
     }
 
     // Write line 4
-    for (int i = 0; i < connNodeIdx; ++i)
+    for (int i = 0; i < groupedNodeIndicesCount; ++i)
     {
         if (i > 0)
         {
@@ -251,14 +251,14 @@ int saveGraph(const Graph* graph, const char* filename)
                 break;
             }
         }
-        if (fprintf(file, "%d", connectionNodes[i]) < 0)
+        if (fprintf(file, "%d", groupedNodeIndices[i]) < 0)
         {
             errorFlag = -1;
             break;
         }
     }
 
-    if (errorFlag == 0 && connNodeIdx > 0)
+    if (errorFlag == 0 && groupedNodeIndicesCount > 0)
     {
         if (fprintf(file, "\n") < 0)
         {
@@ -268,12 +268,12 @@ int saveGraph(const Graph* graph, const char* filename)
     if(errorFlag != 0)
     {
         fprintf(stderr, "Error: Failed to write Line 4\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
-    printf("Info: Line 4 written %d\n", connNodeIdx);
+    printf("Info: Line 4 written %d\n", groupedNodeIndicesCount);
 
     // Write line 5
-    for (int i = 0; i < groupPtrIdx - 1; ++i)
+    for (int i = 0; i < groupPointersCount - 1; ++i)
     {
         if (i > 0)
         {
@@ -283,7 +283,7 @@ int saveGraph(const Graph* graph, const char* filename)
                 break;
             }
         }
-        if (fprintf(file, "%d", edgeGroupPointersOut[i]) < 0)
+        if (fprintf(file, "%d", groupPointers[i]) < 0)
         {
             errorFlag = -1;
             break;
@@ -292,18 +292,18 @@ int saveGraph(const Graph* graph, const char* filename)
     if(errorFlag != 0)
     {
         fprintf(stderr, "Error: Failed to write Line 5\n");
-        return cleanupError(file, rowPointersOut, connectionNodes, edgeGroupPointersOut);
+        return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
-    printf("Info: Line 5 written %d\n", groupPtrIdx);
+    printf("Info: Line 5 written %d\n", groupPointersCount);
 
-    free(rowPointersOut);
-    free(connectionNodes);
-    free(edgeGroupPointersOut);
+    free(rowPointers);
+    free(groupedNodeIndices);
+    free(groupPointers);
 
     if (fclose(file) != 0)
     {
         fprintf(stderr, "Error: Failed to close output file after successful write");
-        return -1; // Error while closing
+        return -1; // error while closing
     }
 
     printf("Info: Finished graph save successfully.\n");
@@ -311,13 +311,13 @@ int saveGraph(const Graph* graph, const char* filename)
     return 0;
 }
 
-int cleanupError(FILE *file, int* rowPointers, int* connNodes, int* groupPtrs)
+int cleanupError(FILE *file, int* rowPointers, int* groupedNodeIndices, int* groupPointers)
 {
     fprintf(stderr, "Error: There was a mishap during writing to a file, cleaning up\n");
 
     free(rowPointers);
-    free(connNodes);
-    free(groupPtrs);
+    free(groupedNodeIndices);
+    free(groupPointers);
 
     if (file != NULL && fclose(file) != 0)
     {

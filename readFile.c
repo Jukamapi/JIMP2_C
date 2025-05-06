@@ -29,8 +29,8 @@ int parseLine(char* line, int** arrPtr, int* countPtr)
         return failParse(NULL, &arrPtr, &countPtr);
     }
 
-    char* line_copy = line;
-    char* token = strtok(line_copy, ";\n\r");
+    char* lineCopy = line;
+    char* token = strtok(lineCopy, ";\n\r");
 
     while (token != NULL)
     {
@@ -115,12 +115,12 @@ void addEdge(Graph* graph, int src, int dest)
     if (!graph || src < 0 || src >= graph->numVert)
     {
         fprintf(stderr, "Error: Invalid source vertex %d\n", src);
-        return; // Don't add the edge
+        return;
     }
     if (dest < 0 || dest >= graph->numVert)
     {
         fprintf(stderr, "Error: Invalid destination vertex %d\n", dest);
-        return; // Don't add the edge
+        return;
     }
 
     Node* newNode = (Node*)malloc(sizeof(Node));
@@ -460,7 +460,7 @@ void printGraph(const Graph* graph)
 
     for (int i = 0; i < graph->numVert; ++i)
     {
-        printf("Vertex %3d (R=%d, C=%d): ", i, graph->vertexData[i].row, graph->vertexData[i].col);
+        printf("Node %3d (R=%d, C=%d): ", i, graph->vertexData[i].row, graph->vertexData[i].col);
 
         Node* current = graph->vertexData[i].neighborsHead;
         if (!current)
