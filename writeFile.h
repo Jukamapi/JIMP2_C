@@ -1,10 +1,10 @@
 #ifndef WRITEFILE_H
 #define WRITEFILE_H
 
+#include <stdio.h>
 typedef struct Graph Graph;
 
 int cleanupError(FILE *file, int* rowPointers, int* groupedNodeIndices, int* groupPointers);
-int saveGraph(const Graph* graph, const char* filename);
-
+int saveGraph(const Graph* graph, const char* filename, int binaryFormat);
 
 #endif

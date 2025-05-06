@@ -50,8 +50,10 @@ int main(int argc, char *argv[])
         char saveFilename[256];
         snprintf(saveFilename, sizeof(saveFilename), "savedGraphs/savedGraph%d.csrrg", targetIndex);
 
+        // todo add flags for this, im too tired today
         printf("\nInfo: Attempting to save graph %d to: %s...\n", targetIndex, saveFilename);
-        int saveStatus = saveGraph(myGraph, saveFilename);
+        // 0 - normal, 1 - binary
+        int saveStatus = saveGraph(myGraph, saveFilename, 1);
 
         if (saveStatus == 0)
         {
