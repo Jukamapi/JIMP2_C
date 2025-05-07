@@ -172,12 +172,24 @@ Graph* loadGraph(const char* filename, int graphIndex)
         return HANDLE_FAIL();
     }
 
+    // Deletes \n and \r
+    char *newline = lineBuffer;
+    while (*newline) {
+        if (*newline == '\r' || *newline == '\n') 
+        {
+            *newline = '\0';
+            break;
+        }
+    newline++;
+}
+
+
     char *endptr;
     long maxDimVal = strtol(lineBuffer, &endptr, 10);
 
-    if (endptr == lineBuffer || (*endptr != '\n' && *endptr != '\r' && *endptr != '\0') || maxDimVal <= 0 || maxDimVal > 1024)
+    if (endptr == lineBuffer || *endptr != '\0' || maxDimVal <= 0 || maxDimVal > 1024)
     {
-        fprintf(stderr, "Error: Invalid max dimension '%s'\n", lineBuffer);
+        fprintf(stderr, "Error: Invalid max dimension in line: '%s'\n", lineBuffer);
         return HANDLE_FAIL();
     }
 
@@ -391,8 +403,8 @@ Graph* loadGraph(const char* filename, int graphIndex)
             // Add edges between nodes
             if (mainNode != restNode)
             {
-                addEdge(graph, mainNode, restNode);
-                addEdge(graph, restNode, mainNode);
+                addEdgeRead(graph, mainNode, restNode);
+                addEdgeRead(graph, restNode, mainNode);
             }
         }
     }
@@ -422,7 +434,7 @@ Graph* failGraph(FILE* file, char* lineBuffer, Graph* graph, int* colIndices, in
     free(edgeListIndices);
     free(edgeGroupPointers);
 
-    if (graph) freeGraph(graph);
+    if (graph) freeGraphRead(graph);
 
     return NULL;
 }

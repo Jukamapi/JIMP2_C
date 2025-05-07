@@ -1,3 +1,5 @@
+// Note: Graphs 2-5 are not fully loading
+
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>

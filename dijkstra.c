@@ -28,7 +28,7 @@ void dijkstra(Graph *graph, int startVertex, int *distances, int *predecessors) 
         if (u == -1) break;
         visited[u] = true;
 
-        Node *neighbor = graph->list[u];
+        Node *neighbor = graph->vertexData[u].neighborsHead;
         while (neighbor != NULL) {
             int v = neighbor->vertex;
             if (!visited[v] && distances[u] != INT_MAX && distances[u] + 1 < distances[v]) {
