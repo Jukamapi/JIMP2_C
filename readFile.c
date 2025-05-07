@@ -202,16 +202,6 @@ Graph* loadGraph(const char* filename, int graphIndex)
         return HANDLE_FAIL();
     }
 
-    for (int i = 0; i < colCount; ++i)
-    {
-        if (colIndices[i] < 0 || colIndices[i] >= maxDim)
-        {
-            fprintf(stderr, "Error: Node %d has column index outside the allowed range in Line 1\n", i);
-            return HANDLE_FAIL();
-        }
-    }
-    printf("Info: Node column indices validation passed.\n");
-
     int numVert = colCount;
     printf("Info: Determined numVert = %d\n", numVert);
 
