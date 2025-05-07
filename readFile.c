@@ -7,7 +7,7 @@
 #include "graph.h"
 
 // I'm making a macro because calling failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers) is too long.
-// I miss "using" from c++ :(
+// I miss "using" from c++ :( -KW
 
 #define HANDLE_FAIL() failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers)
 
@@ -216,16 +216,6 @@ Graph* loadGraph(const char* filename, int graphIndex)
         return HANDLE_FAIL();
     }
 
-    for (int i = 0; i < colCount; ++i)
-    {
-        if (colIndices[i] < 0 || colIndices[i] >= maxDim)
-        {
-            fprintf(stderr, "Error: Node %d has column index outside the allowed range in Line 1\n", i);
-            return HANDLE_FAIL();
-        }
-    }
-    printf("Info: Node column indices validation passed.\n");
-
     int numVert = colCount;
     printf("Info: Determined numVert = %d\n", numVert);
 
@@ -279,7 +269,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
     }
 
     int currentGraphLine = 5;
-    printf("Info: Searching for graph %d starting at line %d)...\n", graphIndex, currentGraphLine);
+    printf("Info: Searching for graph %d starting at line %d\n", graphIndex, currentGraphLine);
 
     int edgeGroupCount = 0;
     int foundGraphIndex = 0;
@@ -378,7 +368,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
         // Check if the group has 2 nodes
         if (groupStartIndex >= groupEndIndex - 1)
         {
-            printf("Info: Skipping group %d (%d, %d) as it has less than 2 nodes for star connection.\n", i, groupStartIndex, groupEndIndex);
+            printf("Info: Skipping group %d because it doesn't have enough nodes\n", i);
             continue;
         }
 

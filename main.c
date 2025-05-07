@@ -36,32 +36,15 @@ int main(int argc, char *argv[])
     printf("Info: Successfully loaded graph %d from %s\n", flags.graphIndex, flags.inputFile);
     if (flags.verbose) {
         printGraph(myGraph);
-    }
 
-    // Executing the cut
-    printf("Info: Cutting graph into %d parts with %.2f%% margin using algorithm %d\n",
-           flags.parts, flags.margin, flags.algorithm);
+        // Algorithms should probably go here
 
-    if (flags.measure) {
-        double start = measureTime();
-        cutGraph(myGraph, flags.parts, flags.margin, flags.algorithm);
-        double end = measureTime();
-        printf("Time: %.6f seconds\n", end - start);
-    } else {
-        cutGraph(myGraph, flags.parts, flags.margin, flags.algorithm);
-    }
+        // Writing to a file
+        char saveFilename[256];
+        snprintf(saveFilename, sizeof(saveFilename), "savedGraphs/savedGraph%d.csrrg", targetIndex);
 
-    // Implementing save path
-    char saveFilename[256];
-    if (flags.outputFile) {
-        strncpy(saveFilename, flags.outputFile, sizeof(saveFilename) - 1);
-        saveFilename[sizeof(saveFilename) - 1] = '\0';
-    } else {
-        snprintf(saveFilename, sizeof(saveFilename), "savedGraphs/savedGraph%d.csrrg", flags.graphIndex);
-    }
-
-    printf("\nInfo: Attempting to save graph %d to: %s...\n", flags.graphIndex, saveFilename);
-    int saveStatus = saveGraph(myGraph, saveFilename);
+        printf("\nInfo: Attempting to save graph %d to: %s...\n", targetIndex, saveFilename);
+        int saveStatus = saveGraph(myGraph, saveFilename);
 
     if (saveStatus == 0) {
         printf("Info: Graph saved successfully to %s.\n", saveFilename);
