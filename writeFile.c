@@ -520,7 +520,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
     }
     printf("Info: Line 5 written %d\n", groupPointersCount - 1);
 
-    if(binaryFormat && errorFlag == 0) //todo
+    if(binaryFormat && (errorFlag == 0)) //todo
     {
         if (flushBuffer(file) != 0)
         {
