@@ -4,15 +4,14 @@
 #include "utils.h"
 
 void handleError(int errorCode, const char *message) {
-    fprintf(stderr, "Kod bledu %d: %s\n", errorCode, message);
+    fprintf(stderr, "Error code %d: %s\n", errorCode, message);
     exit(EXIT_FAILURE);
 }
 
 double measureTime() {
-    clock_t start = clock();
-    // Do dokonczenia jak bedziemy mieli napisane algorytmy
-    clock_t end = clock();
-    return ((double)(end - start)) / CLOCKS_PER_SEC;
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return t.tv_sec + t.tv_nsec / 1e9;
 }
 
 void printHelp() {

@@ -1,17 +1,26 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "readFile.h"
 #include "writeFile.h"
+#include "flags.h"
+#include "graph.h"
+#include "utils.h"
+#include "partition.h"
+#include "test.h"
+
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3)
+    if (argc < 3)
     {
         fprintf(stderr, "Usage: %s <filename> <graphIndex>\n", argv[0]);
         fprintf(stderr, "<filename>: Path to the graph file\n");
         fprintf(stderr, "<graphIndex>: Integer index of a graph to load\n");
+        fprintf(stderr, "Optional parameters: \n");
+        fprintf(stderr, "   -algorithm <algorithm_name>: Algorithm to use for graph partitioning (e.g., DIJKSTRA, KERNIGHAN_LIN)\n");
         return 1;
     }
 
@@ -35,6 +44,35 @@ int main(int argc, char *argv[])
     }
     targetIndex = (int)val;
 
+    // default algorithm
+    AlgorithmType algorithm = DIJKSTRA_BASED;
+
+    // parsing optional arguments
+    for (int i = 3; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-algorithm") == 0 && i + 1 < argc)
+        {
+            i++;
+            if (strcmp(argv[i], "DIJKSTRA") == 0)
+            {
+                algorithm = DIJKSTRA_BASED;
+            }
+            else if (strcmp(argv[i], "KERNIGHAN_LIN") == 0)
+            {
+                algorithm = KERNIGHAN_LIN;
+            }
+            else
+            {
+                fprintf(stderr, "Error: Unknown algorithm '%s'\n", argv[i]);
+                return 1;
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Error: Unknown parameter '%s'\n", argv[i]);
+            return 1;
+        }
+    }
 
     printf("Info: Attempting to load graph %d from: %s\n", targetIndex, filename);
     Graph *myGraph = loadGraph(filename, targetIndex);
@@ -44,7 +82,8 @@ int main(int argc, char *argv[])
         printf("Info: Successfully loaded graph %d from %s\n", targetIndex, filename);
         printGraph(myGraph);
 
-        // Algorithms should probably go here
+        // Perform graph partitioning
+        cutGraph(myGraph, 2, 0.0, algorithm); // Assuming 2 parts and 0% margin for now
 
         // Writing to a file
         char saveFilename[256];
