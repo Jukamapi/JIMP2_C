@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +12,7 @@ void handleError(int errorCode, const char *message) {
 double measureTime() {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
-    return t.tv_sec + t.tv_nsec / 1e9;
+    return (double)t.tv_sec + (double)t.tv_nsec / 1e9;
 }
 
 void printHelp() {

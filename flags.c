@@ -52,8 +52,11 @@ ProgramFlags handleFlags(int argc, char *argv[]) {
 
         } else if (!strcmp(argv[i], "-algorithm") && i + 1 < argc) {
             i++;
-            if (!strcmp(argv[i], "DIJKSTRA")) flags.algorithm = DIJKSTRA_BASED;
-            else if (!strcmp(argv[i], "KERNIGHAN_LIN")) flags.algorithm = KERNIGHAN_LIN;
+            char *alg = argv[i];
+            for (int j = 0; alg[j]; j++) alg[j] = toupper((unsigned char)alg[j]);
+
+            if (!strcmp(alg, "DIJKSTRA")) flags.algorithm = DIJKSTRA_BASED;
+            else if (!strcmp(alg, "KERNIGHAN_LIN")) flags.algorithm = KERNIGHAN_LIN;
             else handleError(2, "Unknown algorithm given in -algorithm");
 
         } else if (flags.parts == 2 && sscanf(argv[i], "%d", &flags.parts) == 1) {

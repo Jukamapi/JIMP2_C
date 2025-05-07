@@ -51,7 +51,7 @@ void freeGraph(Graph* graph) {
     free(graph);
 }
 
-void printGraph(Graph* graph) {
+void printGraph(const Graph* graph) {
     for (int i = 0; i < graph->numVert; i++) {
         Node* temp = graph->list[i];
         printf("Vertex %d:", i);

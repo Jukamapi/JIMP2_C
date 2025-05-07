@@ -6,9 +6,18 @@ typedef struct Node {
     struct Node* next;
 } Node;
 
+typedef struct VertexInfo {
+    int vertexId;
+    int row;
+    int col;
+    Node* neighborsHead;
+} VertexInfo;
+
 typedef struct Graph {
     int numVert;
     Node** list;
+    int maxDim;
+    VertexInfo *vertexData;
 } Graph;
 
 // Creates an empty graph with a given size
@@ -21,6 +30,6 @@ void addEdge(Graph* graph, int src, int dest);
 void freeGraph(Graph* graph);
 
 // Prints graph onto stdout (used for debugging)
-void printGraph(Graph* graph);
+void printGraph(const Graph* graph);
 
 #endif

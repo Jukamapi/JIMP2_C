@@ -1,8 +1,10 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include "readFile.h"
+#include "graph.h"
 
 // I'm making a macro because calling failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers) is too long.
 // I miss "using" from c++ :(
@@ -110,7 +112,7 @@ Graph* allocateGraph(int numVertices, int maxDimension) // Reserves memory for t
     return graph;
 }
 
-void addEdge(Graph* graph, int src, int dest)
+void addEdgeRead(Graph* graph, int src, int dest)
 {
     if (!graph || src < 0 || src >= graph->numVert)
     {
@@ -161,7 +163,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
 
     // Read line 1
     char* lineBuffer = NULL;
-    long lineBufferSize = 0;
+    size_t lineBufferSize = 0;
 
     long lineSize = getline(&lineBuffer, &lineBufferSize, file);
     if (lineSize <= 0)
@@ -426,7 +428,7 @@ Graph* failGraph(FILE* file, char* lineBuffer, Graph* graph, int* colIndices, in
 }
 
 // Free the graph memory
-void freeGraph(Graph* graph)
+void freeGraphRead(Graph* graph)
 {
     if (!graph) return;
     if (graph->vertexData)
@@ -447,7 +449,7 @@ void freeGraph(Graph* graph)
 }
 
 // Print the graph
-void printGraph(const Graph* graph)
+void printGraphRead(const Graph* graph)
 {
     if (!graph)
     {
