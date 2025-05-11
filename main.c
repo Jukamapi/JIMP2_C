@@ -8,6 +8,7 @@
 #include "readFile.h"
 #include "writeFile.h"
 #include "utils.h"
+#include "partition.h"
 
 
 // Config
@@ -139,85 +140,46 @@ int main(int argc, char *argv[])
     printf("Info: Attempting to load graph %d from: %s\n", targetGraphIndex, inputFile);
     Graph *myGraph = loadGraph(inputFile, targetGraphIndex);
 
-    if (myGraph)
-    {
-        printf("Info: Successfully loaded graph %d from %s\n", targetGraphIndex, inputFile);
-        printGraph(myGraph);
-
-        // Algorithms here
-        // dla W
-        // np partitionGraph(...)
-
-        // Writing to a file
-        printf("Info: Attempting to save graph %d\n", targetGraphIndex);
-
-        char outputFilename[FILENAME_MAX];
-
-        //for now 1 only
-        snprintf(outputFilename, sizeof(outputFilename), "%s_%d.csrrg", outputFileBase, 0);
-        int saveSuccess = saveGraph(myGraph, outputFilename, binary);
-
-
-        // DLA WOJTKA PODSTAWA NA POTEM
-        // for (int i = 0; i < numPartitions; ++i)
-        // {
-        //     char outputFilename[FILENAME_MAX];
-
-        //     snprintf(outputFilename, sizeof(outputFilename), "%s_%d.csrrg", outputFileBase, i);
-
-        //     Graph* sub = ...
-
-        //     if (sub)
-        //     {
-        //         printf("Info: Saving partition %d to %s\n", i, outputFilename);
-
-        //         if (saveGraph(sub, outputFilename, 0) != 0)
-        //         {
-        //             fprintf(stderr, "Error: Failed to save subraph\n");
-        //             saveSuccess = false;
-        //         }
-
-        //         freeGraph(sub);
-        //     }
-        //     else
-        //     {
-        //         fprintf(stderr, "Error: Failed to save subraph\n");
-        //         saveSuccess = false;
-        //     }
-        //     if (!saveSuccess) break;
-        //     // 0 - normal, 1 - binary
-        //     //todo savegraph
-        // }
-        // if (saveSuccess)
-        // {
-        //     printf("Info: Saving complete\n");
-        // }
-        // else
-        // {
-        //     fprintf(stderr, "Error: Saving encountered errors\n");
-        // }
-
-        freeGraph(myGraph);
-        if (outputBaseWasDuplicated) free(outputFileBase);
-        printf("Info: Graph memory freed.\n");
-
-        if (saveSuccess != 0)
-        {
-            printf("Info: Application finished with errors\n");
-            return 1;
-        }
-        else
-        {
-            printf("Info: Application finished with success\n");
-            return 0;
-        }
-    }
-    else
-    {
+    if (!myGraph) {
         fprintf(stderr, "Error: Failed to load graph %d\n", targetGraphIndex);
         if (outputBaseWasDuplicated) free(outputFileBase);
         return 1;
     }
 
-    return 0;
+    printf("Info: Successfully loaded graph %d from %s\n", targetGraphIndex, inputFile);
+    if (verboseMode) printGraph(myGraph);
+
+    int* assignment = createAssignmentArray(myGraph->numVert);
+    // Core partitioning
+    cutGraph(myGraph, numPartitions, margin, assignment);
+
+    // Save each partitioned subgraph
+    int saveSuccess = 0;
+    for (int i = 0; i < numPartitions; ++i) {
+        char outputFilename[FILENAME_MAX];
+        snprintf(outputFilename, sizeof(outputFilename), "%s_%d.cssrg", outputFileBase, i);
+        Graph subgraph;
+        extractSubgraph(myGraph, &subgraph, assignment, numPartitions, i);
+
+        printf("Info: Saving partition %d to %s\n", i, outputFilename);
+        saveSuccess = binary ? saveGraph(&subgraph, outputFilename, 1)
+                             : saveGraph(&subgraph, outputFilename, 0);
+        
+        freeGraph(&subgraph);
+        if (saveSuccess != 0) break;
+    }
+
+    freeGraph(myGraph);
+    free(assignment);
+    if (outputBaseWasDuplicated) free(outputFileBase);
+    printf("Info: Graph memory freed.\n");
+
+    if (saveSuccess != 0) {
+        printf("Info: Application finished with errors\n");
+        return 1;
+    } else {
+        printf("Info: Application finished with success\n");
+        return 0;
+    }
+
 }

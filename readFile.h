@@ -1,5 +1,6 @@
 #ifndef READFILE_H
 #define READFILE_H
+#include <stdio.h>
 
 //Graph -> arr of vertices -> list of neighbours to the vertex
 
@@ -12,6 +13,7 @@ typedef struct VertexInfo {
     int vertexId;
     int row;
     int col;
+    int groupId;
     Node* neighborsHead;
 } VertexInfo;
 
