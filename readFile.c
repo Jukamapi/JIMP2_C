@@ -2,7 +2,10 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "readFile.h"
+#include "utils.h"
+
 
 // I'm making a macro because calling failGraph(file, lineBuffer, graph, colIndices, rowPointers, edgeListIndices, edgeGroupPointers) is too long.
 // I miss "using" from c++ :( -KW
@@ -157,7 +160,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
     int* edgeGroupPointers = NULL; // Line 5+
 
 
-    printf("Info: Starting to load graph from file '%s' with index %d\n", filename, graphIndex);
+    LOG_INFO_VERBOSE("Info: Starting to load graph from file '%s' with index %d\n", filename, graphIndex);
 
     // Read line 1
     char* lineBuffer = NULL;
@@ -180,7 +183,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
     }
 
     int maxDim = (int)maxDimVal;
-    printf("Info: Max dimensions from Line 1 = %dx%d\n", maxDim, maxDim);
+    LOG_INFO_VERBOSE("Info: Max dimensions from Line 1 = %dx%d\n", maxDim, maxDim);
 
     // Read line 2
     int colCount = 0;
@@ -203,7 +206,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
     }
 
     int numVert = colCount;
-    printf("Info: Determined numVert = %d\n", numVert);
+    LOG_INFO_VERBOSE("Info: Determined numVert = %d\n", numVert);
 
     // Read line 3
     int rowPtrCount = 0;
@@ -219,7 +222,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
         fprintf(stderr, "Error: Failed to parse Line 3\n");
         return HANDLE_FAIL();
     }
-    printf("Info: Read %d row pointers from Line 3\n", rowPtrCount);
+    LOG_INFO_VERBOSE("Info: Read %d row pointers from Line 3\n", rowPtrCount);
 
     if (rowPtrCount <= 0 || rowPointers[0] != 0 || rowPointers[rowPtrCount - 1] != numVert)
     {
@@ -227,7 +230,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
         return HANDLE_FAIL();
     }
 
-    printf("Info: Line 3 validated\n");
+    LOG_INFO_VERBOSE("Info: Line 3 validated\n");
 
     // Read line 4
     int edgeListCount = 0;
@@ -243,7 +246,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
         fprintf(stderr, "Error: Failed to parse Line 4\n");
         return HANDLE_FAIL();
     }
-    printf("Info: Read %d edge list indices from Line 4\n", edgeListCount);
+    LOG_INFO_VERBOSE("Info: Read %d edge list indices from Line 4\n", edgeListCount);
 
     for (int i = 0; i < edgeListCount; ++i)
     {
@@ -255,7 +258,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
     }
 
     int currentGraphLine = 5;
-    printf("Info: Searching for graph %d starting at line %d\n", graphIndex, currentGraphLine);
+    LOG_INFO_VERBOSE("Info: Searching for graph %d starting at line %d\n", graphIndex, currentGraphLine);
 
     int edgeGroupCount = 0;
     int foundGraphIndex = 0;
@@ -265,7 +268,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
 
         if (foundGraphIndex == graphIndex)
         {
-            printf("Info: Found target graph %d.\n", currentGraphLine); //todo
+            LOG_INFO_VERBOSE("Info: Found target graph %d.\n", currentGraphLine); //todo
 
             if (parseLine(lineBuffer, &edgeGroupPointers, &edgeGroupCount) != 0)
             {
@@ -296,7 +299,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
                     return HANDLE_FAIL();
                 }
             }
-            printf("Info: Group pointers validated.\n");
+            LOG_INFO_VERBOSE("Info: Group pointers validated.\n");
 
             break;
         }
@@ -326,7 +329,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
         return HANDLE_FAIL();
     }
 
-    printf("Info: Populating vertex row/column information\n");
+    LOG_INFO_VERBOSE("Info: Populating vertex row/column information\n");
     int currentRow = 0;
     for (int i = 0; i < rowPtrCount - 1; ++i)
     {
@@ -340,9 +343,9 @@ Graph* loadGraph(const char* filename, int graphIndex)
             graph->vertexData[k].col = colIndices[k];
         }
     }
-    printf("Info: Row/column information populated\n");
+    LOG_INFO_VERBOSE("Info: Row/column information populated\n");
 
-    printf("Info: Building adjacency list\n");
+    LOG_INFO_VERBOSE("Info: Building adjacency list\n");
 
     for (int i = 0; i < edgeGroupCount; ++i)
     {
@@ -354,7 +357,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
         // Check if the group has 2 nodes
         if (groupStartIndex >= groupEndIndex - 1)
         {
-            printf("Info: Skipping group %d because it doesn't have enough nodes\n", i);
+            LOG_INFO_VERBOSE("Info: Skipping group %d because it doesn't have enough nodes\n", i);
             continue;
         }
 
@@ -384,7 +387,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
             }
         }
     }
-    printf("Info: Adjacency list built for graph %d.\n", graphIndex);
+    LOG_INFO_VERBOSE("Info: Adjacency list built for graph %d.\n", graphIndex);
 
     fclose(file);
     free(lineBuffer);
@@ -393,7 +396,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
     free(edgeListIndices);
     free(edgeGroupPointers);
 
-    printf("Info: Finished loading graph %d successfully.\n", graphIndex);
+    LOG_INFO_VERBOSE("Info: Finished loading graph %d successfully.\n", graphIndex);
     return graph;
 }
 

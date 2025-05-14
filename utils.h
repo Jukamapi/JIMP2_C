@@ -2,7 +2,18 @@
 #define UTILS_H
 
 #include <stdio.h>
+#include <stdbool.h>
+
 #include "readFile.h"
+
+extern bool verboseMode;
+
+#define LOG_INFO_VERBOSE(format_str, ...) \
+    do { \
+        if (verboseMode) { \
+            printf(format_str, ##__VA_ARGS__); \
+        } \
+    } while(0)
 
 void handleError(int errorCode, const char *message);
 double measureTime();

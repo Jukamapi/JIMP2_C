@@ -133,11 +133,11 @@ int main(int argc, char *argv[])
         {
             *dot = '\0';
         }
-        printf("Info: No output base specified, using default: '%s'\n", outputFileBase);
+        LOG_INFO_VERBOSE("Info: No output base specified, using default: '%s'\n", outputFileBase);
     }
 
 
-    printf("Info: Attempting to load graph %d from: %s\n", targetGraphIndex, inputFile);
+    LOG_INFO_VERBOSE("Info: Attempting to load graph %d from: %s\n", targetGraphIndex, inputFile);
     Graph *myGraph = loadGraph(inputFile, targetGraphIndex);
 
     if (!myGraph) {
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    printf("Info: Successfully loaded graph %d from %s\n", targetGraphIndex, inputFile);
+    LOG_INFO_VERBOSE("Info: Successfully loaded graph %d from %s\n", targetGraphIndex, inputFile);
     if (verboseMode) printGraph(myGraph);
 
     int* assignment = createAssignmentArray(myGraph->numVert);
@@ -161,10 +161,10 @@ int main(int argc, char *argv[])
         Graph subgraph;
         extractSubgraph(myGraph, &subgraph, assignment, numPartitions, i);
 
-        printf("Info: Saving partition %d to %s\n", i, outputFilename);
+        LOG_INFO_VERBOSE("Info: Saving partition %d to %s\n", i, outputFilename);
         saveSuccess = binary ? saveGraph(&subgraph, outputFilename, 1)
                              : saveGraph(&subgraph, outputFilename, 0);
-        
+
         freeGraph(&subgraph);
         if (saveSuccess != 0) break;
     }
@@ -172,13 +172,13 @@ int main(int argc, char *argv[])
     freeGraph(myGraph);
     free(assignment);
     if (outputBaseWasDuplicated) free(outputFileBase);
-    printf("Info: Graph memory freed.\n");
+    LOG_INFO_VERBOSE("Info: Graph memory freed.\n");
 
     if (saveSuccess != 0) {
-        printf("Info: Application finished with errors\n");
+        LOG_INFO_VERBOSE("Info: Application finished with errors\n");
         return 1;
     } else {
-        printf("Info: Application finished with success\n");
+        LOG_INFO_VERBOSE("Info: Application finished with success\n");
         return 0;
     }
 

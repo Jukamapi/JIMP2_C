@@ -5,6 +5,7 @@
 
 #include "writeFile.h"
 #include "readFile.h"
+#include "utils.h"
 
 // There are way to many nested things here but I don't really have time to fix it, sorry to whoever has to read this -KW
 
@@ -156,7 +157,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
     }
     if (graph->numVert <= 0)
     {
-        printf("Info: Skipping an empty file\n");
+        LOG_INFO_VERBOSE("Info: Skipping an empty file\n");
         return 0;
     }
 
@@ -168,7 +169,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         return -1;
     }
 
-    printf("Info: Starting writing graph to '%s'\n", filename);
+    LOG_INFO_VERBOSE("Info: Starting writing graph to '%s'\n", filename);
 
     if (binaryFormat)
     {
@@ -207,10 +208,10 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         }
     }
     if (errorFlag != 0) return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
-    printf("Info: Line 1 written\n");
+    LOG_INFO_VERBOSE("Info: Line 1 written\n");
 
     // Create line 2 and 3
-    printf("Info: Creating lines 2 and 3\n");
+    LOG_INFO_VERBOSE("Info: Creating lines 2 and 3\n");
     int maxRowInUse = -1;
     for (int i = 0; i < graph->numVert; ++i)
     {
@@ -303,7 +304,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         fprintf(stderr, "Error: Failed to write Line 2\n");
         return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
-    printf("Info: Line 2 written %d\n", nodesWrittenCount);
+    LOG_INFO_VERBOSE("Info: Line 2 written %d\n", nodesWrittenCount);
 
     if (nodesWrittenCount != graph->numVert)
     {
@@ -348,11 +349,11 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         fprintf(stderr, "Error: Failed while writing Line 3\n");
         return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
-    printf("Info: Line 3 written %d\n", numRows + 1);
+    LOG_INFO_VERBOSE("Info: Line 3 written %d\n", numRows + 1);
 
 
     // Line 4 and 5
-    printf("Info: Creating line 4 and 5\n");
+    LOG_INFO_VERBOSE("Info: Creating line 4 and 5\n");
     int groupedNodeIndicesCapacity = graph->numVert > 0 ? graph->numVert * 2 : 10; //todo clearer names
     groupedNodeIndices = malloc(groupedNodeIndicesCapacity * sizeof(int));
 
@@ -486,7 +487,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         fprintf(stderr, "Error: Failed to write Line 4\n");
         return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
-    printf("Info: Line 4 written %d\n", groupedNodeIndicesCount);
+    LOG_INFO_VERBOSE("Info: Line 4 written %d\n", groupedNodeIndicesCount);
 
     // Write line 5
     if (binaryFormat)
@@ -518,7 +519,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         fprintf(stderr, "Error: Failed to write Line 5\n");
         return cleanupError(file, rowPointers, groupedNodeIndices, groupPointers);
     }
-    printf("Info: Line 5 written %d\n", groupPointersCount - 1);
+    LOG_INFO_VERBOSE("Info: Line 5 written %d\n", groupPointersCount - 1);
 
     if(binaryFormat && (errorFlag == 0)) //todo
     {
@@ -538,7 +539,7 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
         return -1; // error while closing
     }
 
-    printf("Info: Finished graph save successfully.\n");
+    LOG_INFO_VERBOSE("Info: Finished graph save successfully.\n");
 
     return 0;
 }
