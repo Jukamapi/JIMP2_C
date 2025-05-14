@@ -161,7 +161,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
 
     // Read line 1
     char* lineBuffer = NULL;
-    long lineBufferSize = 0;
+    size_t lineBufferSize = 0;
 
     long lineSize = getline(&lineBuffer, &lineBufferSize, file);
     if (lineSize <= 0)
@@ -432,8 +432,8 @@ void freeGraph(Graph* graph)
             }
         }
         free(graph->vertexData);
+        graph->vertexData = NULL;
     }
-    free(graph);
 }
 
 // Print the graph

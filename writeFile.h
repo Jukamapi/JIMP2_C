@@ -14,6 +14,7 @@ int writeArrayDataDeltas11Bit(const int* array, int count, FILE* file);
 int flushBuffer(FILE* file);
 int writeSigned11Bit(int value, FILE* file);
 int writeByte(unsigned char byte, FILE* file);
+void extractSubgraph(const Graph* original, Graph* subgraph, int* assignment, int parts, int groupId);
 
 
 

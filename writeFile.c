@@ -562,3 +562,59 @@ int cleanupError(FILE *file, int* rowPointers, int* groupedNodeIndices, int* gro
 
     return -1;
 }
+
+void extractSubgraph(const Graph* original, Graph* subgraph, int* assignment, int parts, int groupId) {
+    if (!original || !subgraph || !assignment || groupId < 0 || groupId >= parts) {
+        handleError(977791, "Invalid arguments to extractSubgraph");
+    }
+
+    int count = 0;
+    for (int i = 0; i < original->numVert; i++) {
+        if (assignment[i] == groupId) count++;
+    }
+
+    subgraph->numVert = count;
+    subgraph->maxDim = original->maxDim;
+    subgraph->vertexData = calloc(count, sizeof(VertexInfo));
+    if (!subgraph->vertexData) {
+        handleError(977792, "Memory allocation failed for subgraph->vertexData");
+    }
+
+    int* oldToNewMap = malloc(original->numVert * sizeof(int));
+    for (int i = 0; i < original->numVert; i++) oldToNewMap[i] = -1;
+
+    // Map old vertex indices to new ones
+    int idx = 0;
+    for (int i = 0; i < original->numVert; i++) {
+        if (assignment[i] == groupId) {
+            oldToNewMap[i] = idx;
+            subgraph->vertexData[idx].vertexId = idx;
+            subgraph->vertexData[idx].row = original->vertexData[i].row;
+            subgraph->vertexData[idx].col = original->vertexData[i].col;
+            subgraph->vertexData[idx].neighborsHead = NULL;
+            idx++;
+        }
+    }
+
+    // Rebuild adjacency list
+    for (int i = 0; i < original->numVert; i++) {
+        if (assignment[i] != groupId) continue;
+
+        int newIndex = oldToNewMap[i];
+        Node* current = original->vertexData[i].neighborsHead;
+
+        while (current) {
+            int neighbor = current->vertex;
+            if (assignment[neighbor] == groupId) {
+                Node* newNode = malloc(sizeof(Node));
+                if (!newNode) handleError(977793, "Memory allocation failed for Node");
+                newNode->vertex = oldToNewMap[neighbor];
+                newNode->next = subgraph->vertexData[newIndex].neighborsHead;
+                subgraph->vertexData[newIndex].neighborsHead = newNode;
+            }
+            current = current->next;
+        }
+    }
+
+    free(oldToNewMap);
+}
