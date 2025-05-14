@@ -26,7 +26,7 @@ static int calculateGain(Graph* graph, int* assignment, int u, int v) {
 void kernighanLinRefinement(Graph* graph, int* assignment, int parts) {
     int numVert = graph->numVert;
     bool* locked = malloc(sizeof(bool) * numVert);
-    if (!locked) handleError(5533, "Memory allocation failed in KL refinement");
+    if (!locked) handleError(21, "Memory allocation failed in KL refinement");
 
     for (int iter = 0; iter < MAX_ITERATIONS; iter++) {
         for (int i = 0; i < numVert; i++) locked[i] = false;

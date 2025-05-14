@@ -285,7 +285,7 @@ Graph* loadGraph(const char* filename, int graphIndex)
                 fprintf(stderr, "Error: First edge group pointer on target line %d is not 0.\n", currentGraphLine);
                 return HANDLE_FAIL();
             }
-            if (edgeGroupPointers[edgeGroupCount - 1] >= edgeListCount || edgeGroupPointers[edgeGroupCount - 1] < 0)
+            if (edgeGroupPointers[edgeGroupCount - 1] > edgeListCount || edgeGroupPointers[edgeGroupCount - 1] < 0)
             {
                 fprintf(stderr, "Error: Last pointer value line %d is not a valid starting index\n", currentGraphLine);
                 return HANDLE_FAIL();

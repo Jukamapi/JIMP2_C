@@ -23,18 +23,15 @@ void cutGraph(Graph *graph, int parts, double margin, int* assignment) {
     }
 
     if (attempts == maxAttempts) {
-        handleError(720, "Graph division doesn't meet balance criteria after retries");
+        handleError(31, "Graph division doesn't meet balance criteria after retries");
     }
 
     if (!graph || parts <=0 || margin < 0) {
-        handleError(721, "Invalid arguments in function cutGraph");
+        handleError(32, "Invalid arguments in function cutGraph");
     }
 
-    // Printing the summary (if the verbose flag is triggered)
-    printAssignmentSummary(graph, assignment, parts);
-
     // Additional logging can be added here, e.g. the number of intersections
-    int cutEdges = countCutEdges(graph, assignment, parts);
+    int cutEdges = countCutEdges(graph, assignment);
     fprintf(stderr, "Number of intersections: %d\n", cutEdges);
 
     // Assigning groups to vertices (the Graph structure can be extended if needed)

@@ -16,26 +16,26 @@ double measureTime() {
 }
 
 void printHelp() {
-    printf("Uzycie: ./cut [ilosc grup do podzialu] [margines procentowy opisujacy roznice ilosci wezlow] - i [nazwa pliku z grafem]\n");
+    printf("Uzycie: ./cut [ilosc grup do podzialu] [margines procentowy opisujacy roznice ilosci wezlow] --input [nazwa pliku z grafem]\n");
     printf("Parametry:\n");
-    printf("  -help                  Wyswietla instrukcje wywolania programu oraz jego argumenty wywolania\n");
-    printf("  -input <nazwa pliku>   Okresla plik wejsciowy, z ktorego program ma wczytac dane\n");
-    printf("  -output <nazwa pliku>  Okresla plik wyjsciowy, do ktorego program zapisze wyniki\n");
-    printf("  -binary                Ustawia format zapisu wynikow w pliku na format binarny\n");
-    printf("  -verbose               Umozliwia podglad procesu dzialania kodu, wyswietla dodatkowe informacje bledow\n");
-    printf("  -graph <numer grafu>   Pozwala wybrac, ktory graf bedzie ciety\n");
+    printf("  --help                  Wyswietla instrukcje wywolania programu oraz jego argumenty wywolania\n");
+    printf("  --input <nazwa pliku>   Okresla plik wejsciowy, z ktorego program ma wczytac dane\n");
+    printf("  --output <nazwa pliku>  Okresla plik wyjsciowy, do ktorego program zapisze wyniki\n");
+    printf("  --binary                Ustawia format zapisu wynikow w pliku na format binarny\n");
+    printf("  --verbose               Umozliwia podglad procesu dzialania kodu, wyswietla dodatkowe informacje bledow\n");
+    printf("  --graph <numer grafu>   Pozwala wybrac, ktory graf bedzie ciety\n");
 }
 
 int* createAssignmentArray(int numVert) {
     int* array = (int*)malloc(sizeof(int) * numVert);
-    if (!array) handleError(88841, "Allocation failed in createAssignmentArray");
+    if (!array) handleError(41, "Allocation failed in createAssignmentArray");
     for (int i = 0; i < numVert; i++) array[i] = -1;
     return array;
 }
 
 int checkBalance(Graph* graph, int* assignment, int parts, double margin) {
     int* groupCounts = (int*)calloc(parts, sizeof(int));
-    if (!groupCounts) handleError(88851, "Allocation failed in check Balance");
+    if (!groupCounts) handleError(42, "Allocation failed in check Balance");
 
     for (int i = 0; i < graph->numVert; i++) {
         int group = assignment[i];
@@ -63,20 +63,7 @@ int checkBalance(Graph* graph, int* assignment, int parts, double margin) {
     return balanced;
 }
 
-void printAssignmentSummary(Graph* graph, int* assignment, int parts) {
-    int* groupCounts = (int*)calloc(parts, sizeof(int));
-    if (!groupCounts) handleError(88861, "Allocation failed in printAssignmentSummary");
-
-    for (int i = 0; i < parts; i++) groupCounts[assignment[i]]++;
-
-    fprintf(stderr, "Group summary:\n");
-    for (int i = 0; i < parts; i++) fprintf(stderr, "Group %d: %d vertices\n", i, groupCounts[i]);
-
-    free(groupCounts);
-}
-
-
-int countCutEdges(Graph* graph, int* assignment, int parts) {
+int countCutEdges(Graph* graph, int* assignment) {
     int cutEdges = 0;
     for (int i = 0; i < graph->numVert; i++) {
         int group = assignment[i];

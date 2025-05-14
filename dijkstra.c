@@ -41,7 +41,7 @@ int* computeShortestPaths(Graph* graph, int source) {
     int numVert = graph->numVert;
     int* dist = malloc(numVert * sizeof(int));
     int *visited = calloc(numVert, sizeof(int));
-    if (!dist || !visited) handleError(34441, "Memory allocation failed in computeShortestPaths");
+    if (!dist || !visited) handleError(11, "Memory allocation failed in computeShortestPaths");
 
     for (int i = 0; i < numVert; i++) dist[i] = INT_MAX;
     dist[source] = 0;
@@ -107,7 +107,7 @@ void assignByDistance(Graph* graph, int* assignment, int seedA, int seedB) {
 
 void dijkstraPartition(Graph* graph, int* assignment, int parts) {
     if (!graph || !assignment || parts < 2) {
-        handleError(344441, "Dijkstra partition requires at least 2 parts");
+        handleError(12, "Dijkstra partition requires at least 2 parts");
     }
 
     int numVert = graph->numVert;
@@ -117,7 +117,7 @@ void dijkstraPartition(Graph* graph, int* assignment, int parts) {
     }
 
     int* seeds = malloc(parts * sizeof(int));
-    if (!seeds) handleError(344442, "Memory allocation failed for seeds");
+    if (!seeds) handleError(13, "Memory allocation failed for seeds");
 
     int spacing = numVert / parts;
     for (int i = 0; i < parts; i++) {
@@ -126,7 +126,7 @@ void dijkstraPartition(Graph* graph, int* assignment, int parts) {
     }
 
     int** distances = malloc(parts * sizeof(int*));
-    if (!distances) handleError(344443, "Failed to allocate distances array");
+    if (!distances) handleError(14, "Failed to allocate distances array");
 
     for (int i = 0; i < parts; i++) {
         distances[i] = computeShortestPaths(graph, seeds[i]);
@@ -147,7 +147,7 @@ void dijkstraPartition(Graph* graph, int* assignment, int parts) {
     }
 
     int* counts = calloc(parts, sizeof(int));
-    if (!counts) handleError(344444, "Failed to allocate counts");
+    if (!counts) handleError(15, "Failed to allocate counts");
 
     for (int i = 0; i < numVert; i++) {
         if (assignment[i] >= 0 && assignment[i] < parts) {
