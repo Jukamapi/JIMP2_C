@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
     int long_index = 0;
 
-    while ((opt = getopt_long(argc, argv, "hi:o:vg:", long_options, &long_index)) != -1)
+    while ((opt = getopt_long(argc, argv, "bhi:o:vg:", long_options, &long_index)) != -1)
     {
         switch (opt)
         {
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
     int saveSuccess = 0;
     for (int i = 0; i < numPartitions; ++i) {
         char outputFilename[FILENAME_MAX];
-        snprintf(outputFilename, sizeof(outputFilename), "%s_%d.cssrg", outputFileBase, i);
+        snprintf(outputFilename, sizeof(outputFilename), "%s_%d.csrrg", outputFileBase, i);
         Graph subgraph;
         extractSubgraph(myGraph, &subgraph, assignment, numPartitions, i);
 

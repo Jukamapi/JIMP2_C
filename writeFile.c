@@ -453,7 +453,15 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
     // Write line 4
     if (binaryFormat)
     {
-        if (writeCountAndArrayDeltas16Bit(groupedNodeIndices, groupedNodeIndicesCount, file) != 0) errorFlag = -1;
+        if (groupedNodeIndicesCount == 0)
+        {
+            writeUint32BigEndian(1, file);
+            writeSigned16Bit(0, file);
+        }
+        else
+        {
+            if (writeCountAndArrayDeltas16Bit(groupedNodeIndices, groupedNodeIndicesCount, file) != 0) errorFlag = -1;
+        }
     }
     else
     {
@@ -467,13 +475,21 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
                     break;
                 }
             }
+
             if (fprintf(file, "%d", groupedNodeIndices[i]) < 0)
             {
                 errorFlag = -1;
                 break;
             }
         }
-        if (errorFlag == 0 && groupedNodeIndicesCount > 0)
+        if (groupedNodeIndicesCount == 0)
+        {
+            if (fprintf(file, "0") < 0)
+            {
+                errorFlag = -1;
+            }
+        }
+        if (errorFlag == 0)
         {
             if (fprintf(file, "\n") < 0)
             {
@@ -492,7 +508,15 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
     // Write line 5
     if (binaryFormat)
     {
-        if (writeCountAndArrayDeltas16Bit(groupPointers, groupPointersCount - 1, file) != 0 ) errorFlag = -1;
+        if ((groupPointersCount - 1) == 0)
+        {
+            writeUint32BigEndian(1, file);
+            writeSigned16Bit(0, file);
+        }
+        else
+        {
+            if (writeCountAndArrayDeltas16Bit(groupPointers, groupPointersCount - 1, file) != 0 ) errorFlag = -1;
+        }
     }
     else
     {
@@ -510,6 +534,13 @@ int saveGraph(const Graph* graph, const char* filename, int binaryFormat)
             {
                 errorFlag = -1;
                 break;
+            }
+        }
+        if ((groupPointersCount - 1) == 0)
+        {
+            if (fprintf(file, "0") < 0)
+            {
+                errorFlag = -1;
             }
         }
     }
