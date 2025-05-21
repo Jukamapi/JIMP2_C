@@ -16,14 +16,18 @@ double measureTime() {
 }
 
 void printHelp() {
-    printf("Uzycie: ./cut [ilosc grup do podzialu] [margines procentowy opisujacy roznice ilosci wezlow] --input [nazwa pliku z grafem]\n");
-    printf("Parametry:\n");
-    printf("  --help                  Wyswietla instrukcje wywolania programu oraz jego argumenty wywolania\n");
-    printf("  --input <nazwa pliku>   Okresla plik wejsciowy, z ktorego program ma wczytac dane\n");
-    printf("  --output <nazwa pliku>  Okresla plik wyjsciowy, do ktorego program zapisze wyniki\n");
-    printf("  --binary                Ustawia format zapisu wynikow w pliku na format binarny\n");
-    printf("  --verbose               Umozliwia podglad procesu dzialania kodu, wyswietla dodatkowe informacje bledow\n");
-    printf("  --graph <numer grafu>   Pozwala wybrac, ktory graf bedzie ciety\n");
+    printf("Uzycie: ./cut <liczba_czesci> <margines_%%> --input <plik.csrrg> [opcje]\n\n");
+    printf("Argumenty wymagane:\n");
+    printf("    <liczba_czesci>     Liczba grup, na ktore nalezy podzielic graf (np. 3)\n");
+    printf("    <margines_%%>        Dopuszczalna roznica procentowa liczby wierzcholkow miedzy grupami\n");
+    printf("    --input <plik>      Plik wejsciowy w formacie .csrrg\n\n");
+    printf("Opcje dodatkowe:\n");
+    printf("  --output <nazwa pliku>  Bazowa nazwa plikow wynikowych (domyslnie: nazwa wejsciowa bez rozszerzenia)\n");
+    printf("                          Wygenerowane beda pliki: <bazowa_nazwa>_0.csrrg, <bazowa_nazwa>_1.csrrg, ...\n");
+    printf("  --binary                Zapis wynikow w formacie binarnym (csrrgbin)\n");
+    printf("  --verbose               Wlacza szczegolowe logowanie do stderr\n");
+    printf("  --graph <numer grafu>   Wybiera, ktory graf z pliku ma byc uzyty (domyslnie: 1)\n");
+    printf("  --help                  Wyswietla te pomoc\n");
 }
 
 int* createAssignmentArray(int numVert) {
