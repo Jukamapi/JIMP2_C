@@ -161,6 +161,7 @@ int main(int argc, char *argv[])
         Graph subgraph;
         extractSubgraph(myGraph, &subgraph, assignment, numPartitions, i);
 
+        if (binary) strcat(outputFilename, "bin");
         LOG_INFO_VERBOSE("Info: Saving partition %d to %s\n", i, outputFilename);
         saveSuccess = binary ? saveGraph(&subgraph, outputFilename, 1)
                              : saveGraph(&subgraph, outputFilename, 0);
